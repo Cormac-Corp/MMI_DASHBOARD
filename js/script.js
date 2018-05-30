@@ -1,9 +1,10 @@
 var topic = "Applications";
-var metric = "Application Submitted(D)";
+var metric = "(D)Applications Submitted";
 var filteredData;
 var dt;
 var linestates = ["Alabama", "Alaska"];
 staticGraph(linestates)
+
 function staticGraph(lnstates) {
     Plotly.d3.json('data/static.json', function (data) {
         var percents = data["Percent"].map((d) => parseInt(d))
@@ -23,18 +24,20 @@ function staticGraph(lnstates) {
         for (let i = 0; i < linestates.length; i++) {
             state = linestates[i]
             var trace = {
-                x:dates,
-                y:dt[state].slice(dt[state].length - 4, dt[state].length),
-                type:'scatter',
-                name:state
+                x: dates,
+                y: dt[state].slice(dt[state].length - 4, dt[state].length),
+                type: 'scatter',
+                name: state
             }
-            traces.push(trace)  
+            traces.push(trace)
         }
         Plotly.newPlot('line', traces)
     });
 }
 Plotly.d3.json('data/choropleth.json', function (data) {
     var topics = Array.from(Object.keys(data))
+    topics.splice(topics.indexOf(""), 1)
+    console.log(topics)
     for (let key = 0; key < topics.length; key++) {
         var opt = document.createElement("li");
         opt.innerHTML = topics[key];
@@ -45,6 +48,7 @@ Plotly.d3.json('data/choropleth.json', function (data) {
         opt.classList.add("list-group-item")
         document.getElementById("topic-select").appendChild(opt);
     }
+    // console.log(topics.includes("")
     choro(topic, metric, linestates)
 })
 
@@ -65,6 +69,7 @@ function choro(topic, metric, linestates) {
             metrics.add(filteredData[i]["Metric"])
         }
         metrics = Array.from(metrics)
+        metrics.splice(metrics.indexOf(""), 1)
         for (let key = 0; key < metrics.length; key++) {
             var opt = document.createElement("li");
             if (metrics[key] == metric) {
@@ -145,7 +150,7 @@ function choro(topic, metric, linestates) {
             }
         }]
         var layout = {
-            title: 'Metric Data',
+            title: '',
             geo: {
                 scope: 'usa',
                 showlakes: true,
