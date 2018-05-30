@@ -13,10 +13,10 @@ class BarChart {
     initVis() {
         var vis = this;
         vis.margin = {
-            left: 60,
+            left: 50,
             right: 20,
             top: 50,
-            bottom: 30
+            bottom: 70
         };
         // console.log(vis.parent.getAttribute("height"));
         vis.height = +$(vis.element).height() - vis.margin.top - vis.margin.bottom;
@@ -70,7 +70,7 @@ class BarChart {
         vis.ylabel = vis.g.append("text")
             .attr("class", "x-axis-label")
             .attr("x", -(vis.height / 2))
-            .attr("y", -30)
+            .attr("y", -40)
             .attr("font-size", "20px")
             .attr("text-anchor", "middle")
             .attr("transform", "rotate(-90)")
@@ -87,31 +87,46 @@ class BarChart {
         var vis = this;
 
         // Update scales
-        vis.x.domain(vis.data.map(function (d) {
-            return d[vis.xv];
-        }));
-        vis.y.domain([0, d3.max(vis.data, function (d) {
-            return d[vis.yv];
-        }) * 1.005]);
+        try {
+            vis.x.domain(vis.data.map(function (d) {
+                return d[vis.xv];
+            }));
+            vis.y.domain([0, d3.max(vis.data, function (d) {
+                return d[vis.yv];
+            }) * 1.005]);
+        } catch (e) {
+            vis.x.domain(vis.data[vis.xv].map(function(d) {return d}));
+            vis.y.domain([0, d3.max(vis.data[vis.yv], function (d) {
+                return d;
+            }) * 1.005]);
+        }
         vis.xAxisCall.scale(vis.x);
-        vis.xAxis.transition(vis.t()).call(vis.xAxisCall);
+        vis.xAxis.transition(vis.t())
+            .call(vis.xAxisCall)
+            .selectAll("text")
+                .attr("y", "10")
+                .attr("x", "-5")
+                .attr("text-anchor", "end")
+                .attr("transform", "rotate(-40)");
         vis.yAxisCall.scale(vis.y);
         vis.yAxis.transition(vis.t()).call(vis.yAxisCall);
         vis.ylabel.text(vis.yv)
         vis.xlabel.text(vis.xv)
-        var rectangles = vis.g.selectAll("rect")
+        vis.rectangles = vis.g.selectAll("rect")
             .data(vis.data);
-        // console.log(rectangles)
-        rectangles.exit()
+        vis.rectangles.exit()
             .attr("fill", "green")
             .transition(vis.t)
             .attr("y", vis.y(0))
             .attr("height", 0)
-        rectangles.transition(vis.t)
+        vis.rectangles.transition(vis.t)
             .attr("x", function (d, i) {
-                return vis.x(d[vis.xv]);
+                return vis.x(d[vis.xv][i]);
             })
-            .attr("y", (d) => vis.y(d[vis.yv]))
+            .attr("y", (d, i) => {
+                console.log(d)
+                vis.y(d[vis.yv][i])
+            })
             .attr("height", function (d, i) {
                 return vis.height - vis.y(d[vis.yv]);
             })
@@ -119,7 +134,7 @@ class BarChart {
                 return vis.x.bandwidth() - 7;
             })
         // Enter
-        rectangles.enter()
+        vis.rectangles.enter()
             .append("rect")
             .attr("x", function (d, i) {
                 return vis.x(d[vis.xv]) + 5;
